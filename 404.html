@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>A.A Sounds</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+
+    #volume-control {
+      width: 80%;
+      margin: 10px auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    #volume-slider {
+      flex: 1;
+      appearance: none;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      outline: none;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    #volume-slider::-webkit-slider-thumb {
+      appearance: none;
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="dark-theme">
+  <header>
+    <h1>A.A SOUNDS</h1>
+  </header>
+
+  <main id="audio-list">
+
+      <div class="audio-item">
+      <button class="big-play-btn" data-number="18">▶</button>
+      <span class="audio-date">13/02/2016</span>
+      <audio src="audios/08072025.mp3" preload="auto"></audio>
+    </div>
+
+    <div class="audio-item">
+      <button class="big-play-btn" data-number="21">▶</button>
+      <span class="audio-date">18/03/2015</span>
+      <audio src="audios/31072025.mp3" preload="auto"></audio>
+    </div>
+
+    <div class="audio-item">
+      <button class="big-play-btn" data-number="9">▶</button>
+      <span class="audio-date">22/07/2015</span>
+      <audio src="audios/29072025v3.mp3" preload="auto"></audio>
+    </div>
+
+    <div class="audio-item">
+      <button class="big-play-btn" data-number="5">▶</button>
+      <span class="audio-date">04/04/2016</span>
+      <audio src="audios/29072025.mp3" preload="auto"></audio>
+    </div>
+
+    <div class="audio-item">
+      <button class="big-play-btn" data-number="12">▶</button>
+      <span class="audio-date">12/03/2015</span>
+      <audio src="audios/13062025v2.mp3" preload="auto"></audio>
+    </div>
+
+    <div class="audio-item">
+      <button class="big-play-btn" data-number="5">▶</button>
+      <span class="audio-date">25/12/2015</span>
+      <audio src="audios/01082025.mp3" preload="auto"></audio>
+    </div>
+
+    <div class="audio-item">
+      <button class="big-play-btn" data-number="13">▶</button>
+      <span class="audio-date">01/04/2015</span>
+      <audio src="audios/06082025.mp3" preload="auto"></audio>
+    </div>
+
+  </main>
+
+  <div id="overlay">
+    <div id="overlay-content">
+      <div id="overlay-number">123</div>
+      <div id="audio-timer">00:00 / 00:00</div>
+
+      <div id="volume-control">
+        <span>🔈</span>
+        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1">
+        <span>🔊</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div id="secret-btn" title="Hmm...">?</div>
+  </footer>
+
+<script>
+  const playButtons = document.querySelectorAll(".big-play-btn");
+  const overlay = document.getElementById("overlay");
+  const overlayNumber = document.getElementById("overlay-number");
+  const audioTimer = document.getElementById("audio-timer");
+  const volumeSlider = document.getElementById("volume-slider");
+  let currentAudio = null;
+  let timerInterval = null;
+  let savedVolume = parseFloat(localStorage.getItem("audioVolume")) || 1;
+  volumeSlider.value = savedVolume;
+
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  };
+
+  playButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const audio = button.nextElementSibling.nextElementSibling;
+      const number = button.dataset.number;
+
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        clearInterval(timerInterval);
+      }
+
+      currentAudio = audio;
+      overlayNumber.textContent = number;
+      overlay.classList.add("active");
+
+      audio.volume = savedVolume;
+      audio.currentTime = 0;
+
+      audio.addEventListener("loadedmetadata", () => {
+        audioTimer.textContent = `00:00 / ${formatTime(audio.duration)}`;
+      }, { once: true });
+
+      audio.play();
+
+      timerInterval = setInterval(() => {
+        if (!currentAudio) return;
+        audioTimer.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+      }, 500);
+
+      audio.addEventListener("ended", () => {
+        overlay.classList.remove("active");
+        clearInterval(timerInterval);
+        currentAudio = null;
+      }, { once: true });
+    });
+  });
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        clearInterval(timerInterval);
+        currentAudio = null;
+      }
+      overlay.classList.remove("active");
+    }
+  });
+
+  volumeSlider.addEventListener("input", () => {
+    savedVolume = volumeSlider.value;
+    localStorage.setItem("audioVolume", savedVolume);
+    if (currentAudio) {
+      currentAudio.volume = savedVolume;
+    }
+  });
+
+  document.getElementById("secret-btn").addEventListener("click", () => {
+    window.location.href = "entrada.html";
+  });
+</script>
+</body>
+</html>
